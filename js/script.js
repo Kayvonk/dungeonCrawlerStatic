@@ -964,6 +964,7 @@ function sendHighscore() {
   if (newUserName === "") {
     newUserName = "AAA";
   }
+
   let newHighscore = {
     userName: newUserName,
     score: highScore,
@@ -971,29 +972,44 @@ function sendHighscore() {
     count: highscoresCount,
   };
 
-  fetch("/api/highscores", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(newHighscore),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      let highscoresInputDiv = document.querySelector(".highscoresInputDiv");
-      highscoresInputDiv.style.display = "none";
-      highscoresEl.style.display = "block";
-      highscoresEl.style.opacity = 1;
-      getHighscores();
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
+  if (highscoresCount >= 100) {
+    highscoresData.pop();
+  }
+  highscoresData.push(newHighscore);
+
+  highscoresData.sort((a, b) => b.score - a.score);
+
+  localStorage.setItem("highscoresDC", JSON.stringify(highscoresData));
+
+  let highscoresInputDiv = document.querySelector(".highscoresInputDiv");
+  highscoresInputDiv.style.display = "none";
+  highscoresEl.style.display = "block";
+  highscoresEl.style.opacity = 1;
+  getHighscores();
+
+  // fetch("/api/highscores", {
+  //   method: "POST",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //   },
+  //   body: JSON.stringify(newHighscore),
+  // })
+  //   .then((response) => {
+  //     if (!response.ok) {
+  //       throw new Error("Network response was not ok");
+  //     }
+  //     return response.json();
+  //   })
+  //   .then((data) => {
+  //     let highscoresInputDiv = document.querySelector(".highscoresInputDiv");
+  //     highscoresInputDiv.style.display = "none";
+  //     highscoresEl.style.display = "block";
+  //     highscoresEl.style.opacity = 1;
+  //     getHighscores();
+  //   })
+  //   .catch((error) => {
+  //     console.error("Error:", error);
+  //   });
 }
 
 function restartGame() {
@@ -3843,7 +3859,7 @@ function startCredits() {
   endingSceneContainer.innerHTML = "";
 
   gameOver = true;
-  // calculateScore();
+  calculateScore();
 
   musicCount = 3; // Index of the boss song
   audio.src = musicArray[musicCount].song; // Change the audio source to boss song
@@ -3900,13 +3916,13 @@ function startCredits() {
 
 // ----------------start highscores logic-------------
 
-// function createHighscoresBoard() {
-//   let highscoresBoard = document.createElement("div");
-//   highscoresBoard.className = "highscoresBoard";
-//   document.body.appendChild(highscoresBoard);
-// }
+function createHighscoresBoard() {
+  let highscoresBoard = document.createElement("div");
+  highscoresBoard.className = "highscoresBoard";
+  document.body.appendChild(highscoresBoard);
+}
 
-// createHighscoresBoard();
+createHighscoresBoard();
 
 // function getHighscores() {
 //   fetch("/api/highscores")
@@ -3921,63 +3937,74 @@ function startCredits() {
 
 // getHighscores();
 
-// function displayHighscoresIcon() {
-//   let highscoresIconImg = document.createElement("img");
-//   highscoresIconImg.className = "highscoresIconImg";
-//   highscoresIconImg.src = "./image/highscores.png";
+function getHighscores() {
+  let localStorageScores =
+    JSON.parse(localStorage.getItem("highscoresDC")) || [];
+  highscoresData = localStorageScores.sort((a, b) => b.score - a.score);
+  lowestHighscore = highscoresData[highscoresData.length - 1] || 0;
+  highscoresCount = highscoresData.length;
+  displayHighscores(highscoresData);
+}
 
-//   highscoresEl.append(highscoresIconImg);
-// }
+getHighscores();
 
-// displayHighscoresIcon();
+function displayHighscoresIcon() {
+  let highscoresIconImg = document.createElement("img");
+  highscoresIconImg.className = "highscoresIconImg";
+  highscoresIconImg.src = "./image/highscores.png";
 
-// highscoresEl.addEventListener("click", displayHighscoresBoard);
+  highscoresEl.append(highscoresIconImg);
+}
 
-// function displayHighscoresBoard() {
-//   let highscoresBoard = document.querySelector(".highscoresBoard");
-//   if (showHighscoresBoard) {
-//     highscoresBoard.style.display = "none";
-//     showHighscoresBoard = false;
-//   } else {
-//     highscoresBoard.style.display = "block";
-//     showHighscoresBoard = true;
-//   }
-// }
+displayHighscoresIcon();
 
-// function displayHighscores(highscores) {
-//   let highscoresBoard = document.querySelector(".highscoresBoard");
-//   highscoresBoard.innerHTML = "";
+highscoresEl.addEventListener("click", displayHighscoresBoard);
 
-//   let topScoresLabel = document.createElement("div");
-//   topScoresLabel.className = "topScoresLabel";
-//   topScoresLabel.textContent = "Top 100";
+function displayHighscoresBoard() {
+  let highscoresBoard = document.querySelector(".highscoresBoard");
+  if (showHighscoresBoard) {
+    highscoresBoard.style.display = "none";
+    showHighscoresBoard = false;
+  } else {
+    highscoresBoard.style.display = "block";
+    showHighscoresBoard = true;
+  }
+}
 
-//   highscoresBoard.append(topScoresLabel);
+function displayHighscores(highscores) {
+  let highscoresBoard = document.querySelector(".highscoresBoard");
+  highscoresBoard.innerHTML = "";
 
-//   highscores.forEach((element, index) => {
-//     let scoreRow = document.createElement("div");
-//     scoreRow.className = "scoreRow";
+  let topScoresLabel = document.createElement("div");
+  topScoresLabel.className = "topScoresLabel";
+  topScoresLabel.textContent = "Top 100";
 
-//     let indexDiv = document.createElement("div");
-//     indexDiv.className = "scoreIndex";
-//     indexDiv.textContent = index + 1 + ".";
-//     indexDiv.style.flex = "1";
+  highscoresBoard.append(topScoresLabel);
 
-//     let userNameDiv = document.createElement("div");
-//     userNameDiv.className = "scoreUserName";
-//     userNameDiv.textContent = element.userName;
-//     userNameDiv.style.flex = "2";
+  highscores.forEach((element, index) => {
+    let scoreRow = document.createElement("div");
+    scoreRow.className = "scoreRow";
 
-//     let scoreDiv = document.createElement("div");
-//     scoreDiv.className = "scoreScore";
-//     scoreDiv.textContent = element.score;
-//     scoreDiv.style.flex = "1";
+    let indexDiv = document.createElement("div");
+    indexDiv.className = "scoreIndex";
+    indexDiv.textContent = index + 1 + ".";
+    indexDiv.style.flex = "1";
 
-//     scoreRow.append(indexDiv, userNameDiv, scoreDiv);
+    let userNameDiv = document.createElement("div");
+    userNameDiv.className = "scoreUserName";
+    userNameDiv.textContent = element.userName;
+    userNameDiv.style.flex = "2";
 
-//     highscoresBoard.append(scoreRow);
-//   });
-// }
+    let scoreDiv = document.createElement("div");
+    scoreDiv.className = "scoreScore";
+    scoreDiv.textContent = element.score;
+    scoreDiv.style.flex = "1";
+
+    scoreRow.append(indexDiv, userNameDiv, scoreDiv);
+
+    highscoresBoard.append(scoreRow);
+  });
+}
 // ----------------end highscores logic---------------
 
 // -------------credits-------------------
