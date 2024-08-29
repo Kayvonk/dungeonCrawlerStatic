@@ -4204,7 +4204,7 @@ function playDialogue(index, delay) {
             swordCatContainer.append(sweatDropImage);
             setTimeout(() => {
               playDialogue(endingDialogueIndex, 3000);
-            }, 3000);
+            }, 2000);
           }, 3000);
         } else if (endingDialogueIndex === 6) {
           endingDialogueIndex++;
@@ -4216,8 +4216,8 @@ function playDialogue(index, delay) {
             endingScene4SamuraiDoge.classList.add("animateDeath");
             playSoundEffect("death");
             setTimeout(() => {
-              playDialogue(endingDialogueIndex, 2000);
-            }, 3000);
+              playDialogue(endingDialogueIndex, 3000);
+            }, 2000);
           }, 500);
         } else if (endingDialogueIndex === 7) {
           setTimeout(() => {
